@@ -1,0 +1,15 @@
+{
+  "name": "wise-reply",
+  "version": "1.0.0",
+  "main": "background.js",
+  "scripts": {
+    "build": "tailwindcss -i ./styles.css -o ./dist/output.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "tailwindcss": "^3.4.14"
+  }
+}

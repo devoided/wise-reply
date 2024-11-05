@@ -1,0 +1,314 @@
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+/* Reset and Base Styles */
+.wise-reply-btn,
+.wise-reply-modal {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Base Wise Reply Button */
+.wise-reply-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.625rem 1.25rem;
+    background-color: #000000;
+    color: #ffffff;
+    border-radius: 9999px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+    margin-left: 8px;
+    white-space: nowrap;
+    letter-spacing: -0.01em;
+    user-select: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transform: translateY(0);
+}
+
+.wise-reply-btn:hover {
+    background-color: #1a1a1a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.wise-reply-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.wise-reply-btn svg {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wise-reply-btn:hover svg {
+    transform: scale(1.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    .wise-reply-btn {
+        background-color: #ffffff;
+        color: #000000;
+        box-shadow: 0 1px 2px rgba(255, 255, 255, 0.05);
+    }
+    
+    .wise-reply-btn:hover {
+        background-color: #f3f4f6;
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    }
+    
+    .wise-reply-btn:active {
+        box-shadow: 0 1px 2px rgba(255, 255, 255, 0.05);
+    }
+}
+
+/* Loading Modal */
+.wise-reply-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+    .wise-reply-loading {
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+}
+
+.wise-reply-modal {
+    position: relative;
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 20rem;
+    overflow: hidden;
+    transform: translateY(0);
+    transition: transform 0.2s ease;
+    animation: modal-appear 0.3s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+    .wise-reply-modal {
+        background-color: #000000;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+}
+
+.wise-reply-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #f3f4f6;
+    overflow: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+    .wise-reply-progress {
+        background-color: #1f2937;
+    }
+}
+
+.wise-reply-progress-bar {
+    height: 100%;
+    background-color: #000000;
+    animation: progress 10s linear;
+}
+
+@media (prefers-color-scheme: dark) {
+    .wise-reply-progress-bar {
+        background-color: #ffffff;
+    }
+}
+
+.wise-reply-content {
+    padding: 1.75rem 2rem;
+}
+
+.wise-reply-spinner-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.wise-reply-spinner {
+    position: relative;
+    width: 3.5rem;
+    height: 3.5rem;
+}
+
+.wise-reply-spinner-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid #f3f4f6;
+    border-top-color: #000000;
+    animation: spinner-rotation 1s linear infinite;
+}
+
+@media (prefers-color-scheme: dark) {
+    .wise-reply-spinner-ring {
+        border-color: #1f2937;
+        border-top-color: #ffffff;
+    }
+}
+
+.wise-reply-text {
+    text-align: center;
+}
+
+.wise-reply-title {
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+}
+
+@media (prefers-color-scheme: dark) {
+    .wise-reply-title {
+        color: #ffffff;
+    }
+}
+
+.wise-reply-subtitle {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #6b7280;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+}
+
+@media (prefers-color-scheme: dark) {
+    .wise-reply-subtitle {
+        color: #9ca3af;
+    }
+}
+
+/* Refresh Button */
+.wise-reply-refresh {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    padding: 8px;
+    border-radius: 9999px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wise-reply-refresh:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: scale(1.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    .wise-reply-refresh:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+.wise-reply-refresh svg {
+    width: 20px;
+    height: 20px;
+    color: #000000;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wise-reply-refresh:hover svg {
+    transform: rotate(180deg);
+}
+
+@media (prefers-color-scheme: dark) {
+    .wise-reply-refresh svg {
+        color: #ffffff;
+    }
+}
+
+/* Editor Container Adjustment */
+[data-testid="tweetTextarea_0"],
+[data-testid="tweetTextarea_1"] {
+    padding-right: 48px !important;
+}
+
+/* Animations */
+@keyframes progress {
+    0% { width: 0; }
+    100% { width: 100%; }
+}
+
+@keyframes spinner-rotation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes modal-appear {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Focus States */
+.wise-reply-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #000000;
+}
+
+@media (prefers-color-scheme: dark) {
+    .wise-reply-btn:focus {
+        box-shadow: 0 0 0 2px #000000, 0 0 0 4px #ffffff;
+    }
+}
+
+/* Disabled States */
+.wise-reply-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Selection Colors */
+.wise-reply-modal ::selection {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #000000;
+}
+
+@media (prefers-color-scheme: dark) {
+    .wise-reply-modal ::selection {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+    }
+}
+
+/* Hardware Acceleration */
+.wise-reply-modal,
+.wise-reply-spinner-ring,
+.wise-reply-progress-bar {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
