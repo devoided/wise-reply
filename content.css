@@ -338,3 +338,29 @@
     height: 20px;
     color: rgb(29, 155, 240);
 }
+
+.wise-reply-refresh {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
+.wise-reply-refresh button {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.wise-reply-refresh button:hover {
+    background-color: rgba(29, 155, 240, 0.1);
+}
+
+.wise-reply-refresh svg {
+    color: rgb(29, 155, 240);
+}

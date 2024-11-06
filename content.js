@@ -68,7 +68,7 @@ function injectRefreshButton(toolbar, tweetElement) {
 }
 
 // Function to handle the click event of the Wise Reply button
-async function handleEngageClick(event, tweetElement) {
+async function handleEngageClick(event, tweetElement, isRefresh = false) {
     event.preventDefault();
     event.stopPropagation();
 
@@ -104,7 +104,8 @@ async function handleEngageClick(event, tweetElement) {
         // Generate the reply
         const response = await chrome.runtime.sendMessage({
             action: 'generateReply',
-            tweetContent
+            tweetContent,
+            isRefresh: isRefresh
         });
 
         if (response.error) {

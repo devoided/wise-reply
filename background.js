@@ -1,3 +1,4 @@
+// background.js
 chrome.runtime.onInstalled.addListener(() => {
     console.log('Wise Reply: Extension installed/updated');
 });
@@ -7,7 +8,10 @@ let lastRequestTime = 0;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'generateReply') {
-        console.log('Wise Reply: Received generate reply request', { tweetContent: request.tweetContent });
+        console.log('Wise Reply: Received generate reply request', { 
+            tweetContent: request.tweetContent,
+            isRefresh: request.isRefresh 
+        });
         handleGenerateReply(request, sendResponse);
         return true; // Indicates async response
     }
@@ -110,7 +114,7 @@ Focus on:
         const requestBody = {
             model: "claude-3-5-sonnet-20241022",
             max_tokens: 248,
-            temperature: 0,
+            temperature: request.isRefresh ? 1 : 0,
             system: systemPrompt,
             messages: messages
         };
