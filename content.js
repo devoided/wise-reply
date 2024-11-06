@@ -67,12 +67,10 @@ function injectRefreshButton(toolbar, tweetElement) {
     }
 }
 
-// Function to handle the click event of the Wise Reply button
 async function handleEngageClick(event, tweetElement, isRefresh = false) {
     event.preventDefault();
     event.stopPropagation();
 
-    // Extract tweet content
     const tweetTextElement = tweetElement.querySelector('[data-testid="tweetText"]');
     if (!tweetTextElement) {
         alert('Could not find tweet content');
@@ -80,20 +78,16 @@ async function handleEngageClick(event, tweetElement, isRefresh = false) {
     }
     const tweetContent = tweetTextElement.textContent;
 
-    // Show loading indicator
     const loadingIndicator = createLoadingIndicator();
     document.body.appendChild(loadingIndicator);
 
     try {
-        // Click the native reply button to open the reply box
         const replyButton = tweetElement.querySelector('[data-testid="reply"]');
         if (replyButton) {
             replyButton.click();
-            // Wait for the reply box to appear
             await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
-        // Wait for the reply textarea and toolbar
         const replyBox = await waitForElement('[data-testid="tweetTextarea_0"]', 5000);
         const toolbar = await waitForElement('[role="navigation"]', 5000);
         
@@ -101,7 +95,6 @@ async function handleEngageClick(event, tweetElement, isRefresh = false) {
             throw new Error('Could not find reply textarea');
         }
 
-        // Generate the reply
         const response = await chrome.runtime.sendMessage({
             action: 'generateReply',
             tweetContent,
@@ -112,14 +105,37 @@ async function handleEngageClick(event, tweetElement, isRefresh = false) {
             throw new Error(response.error);
         }
 
-        // Insert the reply into the comment box
         replyBox.focus();
-        document.execCommand('insertText', false, response.reply);
 
-        // Trigger input event to ensure X recognizes the change
-        replyBox.dispatchEvent(new Event('input', { bubbles: true }));
+        // Split into lines
+        const lines = response.reply.split('\n');
+        
+        // Type first line
+        document.execCommand('insertText', false, lines[0]);
+        
+        // For each subsequent line
+        for (let i = 1; i < lines.length; i++) {
+            // Press Enter
+            replyBox.dispatchEvent(new KeyboardEvent('keydown', {
+                key: 'Enter',
+                code: 'Enter',
+                keyCode: 13,
+                which: 13,
+                bubbles: true,
+                composed: true,
+                cancelable: true
+            }));
+            
+            // Small delay
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Type the line
+            document.execCommand('insertText', false, lines[i]);
+            
+            // Small delay between lines
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
 
-        // Inject refresh button into toolbar if found
         if (toolbar) {
             injectRefreshButton(toolbar, tweetElement);
         }
