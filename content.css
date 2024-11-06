@@ -312,3 +312,29 @@
     backface-visibility: hidden;
     perspective: 1000px;
 }
+
+/* Add to your CSS file */
+.wise-reply-refresh {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.wise-reply-refresh:hover {
+    background-color: rgba(29, 155, 240, 0.1);
+}
+
+.wise-reply-refresh svg {
+    width: 20px;
+    height: 20px;
+    color: rgb(29, 155, 240);
+}

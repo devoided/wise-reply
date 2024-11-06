@@ -1,11 +1,11 @@
-// Global state to avoid duplicate button injection
-const processedTweets = new Set();
+// content.js
 
-function injectEngageButton(tweet) {
-    // Skip if already processed
-    if (processedTweets.has(tweet) || tweet.querySelector('.wise-reply-btn')) return;
-    
-    const tweetActions = tweet.querySelector('[data-testid="reply"]')?.closest('div[role="group"]');
+// Function to inject the Wise Reply button into a tweet
+function injectEngageButton(tweetElement) {
+    // Skip if button already exists
+    if (tweetElement.querySelector('.wise-reply-btn')) return;
+
+    const tweetActions = tweetElement.querySelector('[data-testid="reply"]')?.closest('div[role="group"]');
     if (!tweetActions) return;
 
     const button = document.createElement('div');
@@ -19,17 +19,60 @@ function injectEngageButton(tweet) {
             <span>Wise Reply</span>
         </button>
     `;
-    
-    button.firstElementChild.addEventListener('click', (e) => handleEngageClick(e, tweet));
+
+    button.firstElementChild.addEventListener('click', (e) => handleEngageClick(e, tweetElement));
     tweetActions.appendChild(button);
-    processedTweets.add(tweet);
 }
 
+// Function to inject refresh button into toolbar
+function injectRefreshButton(toolbar, tweetElement) {
+    if (toolbar.querySelector('.wise-reply-refresh')) return;
+
+    const refreshButton = document.createElement('div');
+    refreshButton.className = 'css-175oi2r r-14tvyh0 r-cpa5s6';
+    refreshButton.innerHTML = `
+        <button aria-label="Regenerate reply" role="button" 
+            class="css-175oi2r r-sdzlij r-1phboty r-rs99b7 r-lrvibr r-2yi16 r-1qi8awa r-1loqt21 r-o7ynqc r-6416eg r-1ny4l3l" 
+            type="button" 
+            style="background-color: rgba(0, 0, 0, 0); border-color: rgba(0, 0, 0, 0);">
+            <div dir="ltr" 
+                class="css-146c3p1 r-bcqeeo r-qvutc0 r-37j5jr r-q4m81j r-a023e6 r-rjixqe r-b88u0q r-1awozwy r-6koalj r-18u37iz r-16y2uox r-1777fci" 
+                style="text-overflow: unset;">
+                <svg viewBox="0 0 24 24" 
+                    class="r-4qtqp9 r-yyyyoo r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1xvli5t r-1hdv0qi">
+                    <g>
+                        <path d="M16.3 12.6c-.2-.2-.4-.3-.7-.3s-.5.1-.7.3L12 15.5l-3-2.9c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l3.7 3.7c.2.2.4.3.7.3s.5-.1.7-.3l3.7-3.7c.4-.4.4-1 0-1.4zm5.7-.6c0 5.5-4.5 10-10 10S2 17.5 2 12 6.5 2 12 2s10 4.5 10 10zm-2 0c0-4.4-3.6-8-8-8s-8 3.6-8 8 3.6 8 8 8 8-3.6 8-8z"/>
+                    </g>
+                </svg>
+            </div>
+        </button>
+    `;
+
+    refreshButton.querySelector('button').addEventListener('click', async () => {
+        const editor = document.querySelector('[data-testid="tweetTextarea_0"]');
+        if (editor) {
+            // Clear existing content
+            editor.textContent = '';
+            editor.dispatchEvent(new Event('input', { bubbles: true }));
+            // Generate new reply
+            handleEngageClick(new Event('click'), tweetElement);
+        }
+    });
+
+    // Find the tablist element
+    const tabList = toolbar.querySelector('[role="tablist"]');
+    if (tabList) {
+        // Append to the end of the tablist
+        tabList.appendChild(refreshButton);
+    }
+}
+
+// Function to handle the click event of the Wise Reply button
 async function handleEngageClick(event, tweetElement) {
     event.preventDefault();
     event.stopPropagation();
 
-    // Extract tweet content first to validate we have something to work with
+    // Extract tweet content
     const tweetTextElement = tweetElement.querySelector('[data-testid="tweetText"]');
     if (!tweetTextElement) {
         alert('Could not find tweet content');
@@ -37,35 +80,28 @@ async function handleEngageClick(event, tweetElement) {
     }
     const tweetContent = tweetTextElement.textContent;
 
-    // Show loading indicator immediately
+    // Show loading indicator
     const loadingIndicator = createLoadingIndicator();
     document.body.appendChild(loadingIndicator);
 
     try {
-        // First clear any existing reply textarea if it exists
-        const existingEditor = document.querySelector('[data-testid="tweetTextarea_0"]');
-        if (existingEditor) {
-            await clearEditorContent(existingEditor);
-        }
-
-        // Click the native reply button to open modal
+        // Click the native reply button to open the reply box
         const replyButton = tweetElement.querySelector('[data-testid="reply"]');
         if (replyButton) {
             replyButton.click();
-            // Wait for modal animation
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Wait for the reply box to appear
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
-        // Find and clear the reply textarea that appears after clicking reply
-        const editor = await waitForElement('[data-testid="tweetTextarea_0"]', 2000);
-        if (!editor) {
+        // Wait for the reply textarea and toolbar
+        const replyBox = await waitForElement('[data-testid="tweetTextarea_0"]', 5000);
+        const toolbar = await waitForElement('[role="navigation"]', 5000);
+        
+        if (!replyBox) {
             throw new Error('Could not find reply textarea');
         }
 
-        // Clear any pre-filled content
-        await clearEditorContent(editor);
-
-        // Generate the reply while modal is opening
+        // Generate the reply
         const response = await chrome.runtime.sendMessage({
             action: 'generateReply',
             tweetContent
@@ -75,11 +111,17 @@ async function handleEngageClick(event, tweetElement) {
             throw new Error(response.error);
         }
 
-        // Insert the new reply
-        await insertReplyText(editor, response.reply);
+        // Insert the reply into the comment box
+        replyBox.focus();
+        document.execCommand('insertText', false, response.reply);
 
-        // Add refresh button if needed
-        addRefreshButton(editor, event, tweetElement);
+        // Trigger input event to ensure X recognizes the change
+        replyBox.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Inject refresh button into toolbar if found
+        if (toolbar) {
+            injectRefreshButton(toolbar, tweetElement);
+        }
 
     } catch (error) {
         console.error('Wise Reply Error:', error);
@@ -89,46 +131,7 @@ async function handleEngageClick(event, tweetElement) {
     }
 }
 
-async function clearEditorContent(editor) {
-    // Clear the content
-    editor.textContent = '';
-    
-    // Dispatch necessary events
-    editor.dispatchEvent(new Event('input', { bubbles: true }));
-    editor.dispatchEvent(new Event('change', { bubbles: true }));
-    
-    // Give Twitter's UI time to process the clearing
-    await new Promise(resolve => setTimeout(resolve, 100));
-}
-
-async function insertReplyText(editor, text) {
-    // Focus the editor
-    editor.focus();
-
-    // Create and dispatch paste event
-    const clipboardData = new DataTransfer();
-    clipboardData.setData('text/plain', text);
-
-    const pasteEvent = new ClipboardEvent('paste', {
-        bubbles: true,
-        cancelable: true,
-        clipboardData
-    });
-
-    // Dispatch paste event
-    editor.dispatchEvent(pasteEvent);
-
-    // Fallback: If paste doesn't work, set content directly
-    if (!editor.textContent) {
-        editor.textContent = text;
-        editor.dispatchEvent(new Event('input', { bubbles: true }));
-        editor.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-
-    // Wait for content to be inserted
-    await new Promise(resolve => setTimeout(resolve, 100));
-}
-
+// Function to create a loading indicator
 function createLoadingIndicator() {
     const div = document.createElement('div');
     div.className = 'wise-reply-loading';
@@ -153,34 +156,7 @@ function createLoadingIndicator() {
     return div;
 }
 
-function addRefreshButton(editor, originalEvent, tweetElement) {
-    // Remove existing refresh button if present
-    const existingButton = editor.parentElement.querySelector('.wise-reply-refresh');
-    if (existingButton) {
-        existingButton.remove();
-    }
-
-    const refreshButton = document.createElement('button');
-    refreshButton.className = 'wise-reply-refresh';
-    refreshButton.innerHTML = `
-        <div class="css-175oi2r r-1awozwy r-18u37iz r-1q142lx">
-            <svg viewBox="0 0 24 24" class="r-4qtqp9 r-yyyyoo r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1xvli5t r-1hdv0qi">
-                <g>
-                    <path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path>
-                </g>
-            </svg>
-        </div>
-    `;
-    
-    refreshButton.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        await clearEditorContent(editor);
-        handleEngageClick(originalEvent, tweetElement);
-    });
-
-    editor.parentElement.appendChild(refreshButton);
-}
-
+// Helper function to wait for an element to appear
 function waitForElement(selector, timeout = 5000) {
     return new Promise((resolve) => {
         if (document.querySelector(selector)) {
@@ -206,9 +182,9 @@ function waitForElement(selector, timeout = 5000) {
     });
 }
 
-// Initialize
+// Initialize the extension
 function init() {
-    // Create one observer for all tweets
+    // Observe DOM changes to inject the button into new tweets
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.type === 'childList') {
@@ -218,7 +194,7 @@ function init() {
                         if (node.matches('article[data-testid="tweet"]')) {
                             injectEngageButton(node);
                         }
-                        // Check children for tweets
+                        // Check for tweets within the node
                         const tweets = node.querySelectorAll('article[data-testid="tweet"]');
                         tweets.forEach(injectEngageButton);
                     }
@@ -228,12 +204,12 @@ function init() {
     });
 
     // Start observing
-    observer.observe(document.body, { 
-        childList: true, 
-        subtree: true 
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
     });
 
-    // Process any existing tweets
+    // Inject button into existing tweets
     document.querySelectorAll('article[data-testid="tweet"]').forEach(injectEngageButton);
 }
 
