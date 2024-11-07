@@ -107,8 +107,8 @@ async function handleEngageClick(event, tweetElement, isRefresh = false) {
 
         replyBox.focus();
 
-        // Split into lines
-        const lines = response.reply.split('\n');
+        // Split preserving empty lines (consecutive newlines)
+        const lines = response.reply.split(/\n/);
         
         // Type first line
         document.execCommand('insertText', false, lines[0]);
@@ -129,8 +129,10 @@ async function handleEngageClick(event, tweetElement, isRefresh = false) {
             // Small delay
             await new Promise(resolve => setTimeout(resolve, 100));
             
-            // Type the line
-            document.execCommand('insertText', false, lines[i]);
+            // Only type the line if it's not empty (was not a consecutive newline)
+            if (lines[i] !== '') {
+                document.execCommand('insertText', false, lines[i]);
+            }
             
             // Small delay between lines
             await new Promise(resolve => setTimeout(resolve, 100));
